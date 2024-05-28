@@ -18,10 +18,8 @@ app.use(express.json());
 
 // Endpoint POST para receber o buffer da imagem e outros dados
 app.post('/upload', upload.single('image'), (req, res) => {
-    const { temperature, pressure, altitude } = req.body;
-
     if (!req.file) {
-        return res.status(400).send('Nenhum arquivo enviado.');
+        return res.status(400).send('Nenhuma imagem enviada.');
     }
 
     // Salva a imagem como buffer em um arquivo
@@ -31,12 +29,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
             return res.status(500).send('Erro ao salvar a imagem.');
         }
 
-        // Log de outros dados recebidos
-        console.log(`Temperatura: ${temperature}`);
-        console.log(`Pressão: ${pressure}`);
-        console.log(`Altitude: ${altitude}`);
-
-        res.status(200).send('Imagem e dados recebidos e salvos com sucesso.');
+        res.status(200).send('Imagem recebida e salva com sucesso.');
     });
 });
 
