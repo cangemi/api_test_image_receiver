@@ -17,19 +17,24 @@ const upload = multer({
 app.use(express.json());
 
 // Endpoint POST para receber o buffer da imagem e outros dados
-app.post('/upload', upload.single('image'), (req, res) => {
-    if (!req.file) {
+pp.post('/upload', upload.none(), (req, res) => {
+    if (!req.body) {
         return res.status(400).send('Nenhuma imagem enviada.');
     }
 
+    const imageData = Buffer.from(req.body, 'binary');
+
     // Salva a imagem como buffer em um arquivo
     const imagePath = path.join(__dirname, 'image.jpg');
-    fs.writeFile(imagePath, req.file.buffer, (err) => {
+
+    // Se for a primeira parte da imagem, escreve o buffer diretamente, caso contrário, acrescenta ao arquivo existente
+    const writeMode = req.query.start ? 'write' : 'append';
+    fs[writeMode + 'File'](imagePath, imageData, { flag: 'a' }, (err) => {
         if (err) {
             return res.status(500).send('Erro ao salvar a imagem.');
         }
 
-        res.status(200).send('Imagem recebida e salva com sucesso.');
+        res.status(200).send('Parte da imagem recebida e salva com sucesso.');
     });
 });
 
