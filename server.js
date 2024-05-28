@@ -17,7 +17,7 @@ const upload = multer({
 app.use(express.json());
 
 // Endpoint POST para receber o buffer da imagem e outros dados
-pp.post('/upload', upload.none(), (req, res) => {
+app.post('/upload', upload.none(), (req, res) => {
     if (!req.body) {
         return res.status(400).send('Nenhuma imagem enviada.');
     }
