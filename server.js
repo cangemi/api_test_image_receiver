@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 
@@ -7,6 +8,9 @@ const port = 3000;
 
 // Middleware para processar JSON
 app.use(express.json());
+
+// Usar o body-parser para lidar com requisições JSON
+app.use(bodyParser.raw({ type: 'application/octet-stream', limit: '50mb' }));
 
 let imageBuffer = Buffer.alloc(0);
 let metadata = null;
@@ -91,4 +95,3 @@ app.get('/image-file', (req, res) => {
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
 });
-
