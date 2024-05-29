@@ -39,7 +39,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  if (!sensorData.image) {
+  if (!sensorData.temperature) {
     return res.status(404).send('No data available');
   }
 
