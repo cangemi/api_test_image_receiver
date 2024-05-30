@@ -14,7 +14,7 @@ let sensorData = {
   image: null
 };
 
-app.post('/upload/', (req, res) => {
+app.post('/upload/', async (req, res) => {
   const { temperature, pressure, altitude } = req.body;
 
   if (!temperature || !pressure || !altitude) {
@@ -30,7 +30,7 @@ app.post('/upload/', (req, res) => {
   res.status(200).send('Data received successfully');
 });
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   if (!sensorData.temperature) {
     return res.status(404).send('No data available');
   }
