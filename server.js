@@ -17,7 +17,7 @@ let sensorData = {
 app.post('/upload', (req, res) => {
   const { temperature, pressure, altitude } = req.body;
 
-  if (!temperature || !pressure || !altitude || !image) {
+  if (!temperature || !pressure || !altitude) {
     return res.status(400).send('Missing required fields');
   }
 
