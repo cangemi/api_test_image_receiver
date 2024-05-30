@@ -1,4 +1,3 @@
-const axios = require('axios');
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -15,7 +14,7 @@ let sensorData = {
   image: null
 };
 
-app.post('/upload', async (req, res) => {
+app.post('/upload', (req, res) => {
   const { temperature, pressure, altitude, image } = req.body;
 
   if (!temperature || !pressure || !altitude || !image) {
@@ -28,21 +27,6 @@ app.post('/upload', async (req, res) => {
     altitude: parseFloat(altitude),
     image: image
   };
-
-
-  const scriptUrl = 'https://script.google.com/macros/s/AKfycbwwavVO-hQcPxqC62IRD1dsB6K9ZqYCKM8oeNvvr6TVZ5tzjdb7K7LfF9v6WGpGskRrFA/exec';
-  try {
-    const response = await axios.post(scriptUrl, null, {
-      params: {
-        data: sensorData.image,
-        mimetype: 'image/jpeg', // Substitua pelo tipo MIME correto, se necessário
-      },
-    });
-
-    console.log('Resposta do Google Apps Script:', response.data);
-  } catch (error) {
-    console.error('Erro ao enviar a imagem:', error);
-  }
 
   res.status(200).send('Data received successfully');
 });
