@@ -14,7 +14,7 @@ let sensorData = {
   image: null
 };
 
-app.post('/upload', (req, res) => {
+app.post('/upload/', (req, res) => {
   const { temperature, pressure, altitude } = req.body;
 
   if (!temperature || !pressure || !altitude) {
