@@ -41,9 +41,9 @@ app.get('/', (req, res) => {
       <body>
         <h1>Sensor Data</h1>
         <p>Temperature: ${sensorData.temperature} °C</p>
-        <p>Pressure: ${sensorData.pressure} hPa</p>
-        <p>Altitude: ${sensorData.altitude} m</p>
-        <img src="data:image/jpeg;base64,${sensorData.image}" alt="Captured Image" style="width: 500px; height: 400px;"/>
+        <p>Pressure: ${sensorData.pressure} PA</p>
+        <p>Altitude: ${sensorData.altitude} Metros</p>
+        <img src="data:image/jpeg;base64,${sensorData.image}" alt="Captured Image" style="width: 700px; height: 600px;"/>
       </body>
     </html>
   `;
