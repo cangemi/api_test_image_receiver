@@ -25,7 +25,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
     return res.status(400).send('Missing required fields');
   }
 
-  sensorData = {
+  const sensorData = {
     temperature: parseFloat(temperature),
     pressure: parseFloat(pressure),
     altitude: parseFloat(altitude),
@@ -67,7 +67,7 @@ app.get('/', (req, res) => {
         <p>Temperature: ${sensorData.temperature} °C</p>
         <p>Pressure: ${sensorData.pressure} PA</p>
         <p>Altitude: ${sensorData.altitude} Metros</p>
-        <img src="data:image/jpeg;base64,${sensorData.image}" alt="Captured Image" style="width: 500px; height: 400px;"/>
+        <img src="data:image/jpeg;base64,${sensorData.image}" alt="Captured Image" style="width: 600px; height: 400px;"/>
       </body>
     </html>
   `;
