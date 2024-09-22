@@ -25,6 +25,7 @@ let sensorData = {
 
 app.post('/upload', upload.single('image'), (req, res) => {
   const { temperature, pressure, altitude,device_mac } = req.body;
+  console.log('Chunk received: ', req.file);
   const image = req.file; // O arquivo enviado
 
   if (!temperature || !pressure || !altitude || !image) {
