@@ -60,7 +60,7 @@ app.get('/', (req, res) => {
   if (!sensorData.temperature) {
     return res.status(404).send('No data available');
   }
-
+  const imageBase64 = sensorData.image.toString('base64');
   const html = `
     <html>
       <body>
@@ -68,7 +68,7 @@ app.get('/', (req, res) => {
         <p>Temperature: ${sensorData.temperature} °C</p>
         <p>Pressure: ${sensorData.pressure} PA</p>
         <p>Altitude: ${sensorData.altitude} Metros</p>
-        <img src="data:image/jpeg;base64,${sensorData.image}" alt="Captured Image" style="width: 600px; height: 400px;"/>
+        <img src="data:image/jpeg;base64,${imageBase64 }" alt="Captured Image" style="width: 600px; height: 400px;"/>
       </body>
     </html>
   `;
