@@ -1,9 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,15 +14,13 @@ let sensorData = {
   temperature: null,
   pressure: null,
   altitude: null,
-  mac:null,
   image: null
 };
 
-const upload = multer({ storage: storage });
 
 app.post('/upload', upload.single('image'), (req, res) => {
-  const { temperature, pressure, altitude,mac } = req.body;
-  const image = req.file;
+  const { temperature, pressure, altitude } = req.body;
+  const image = req.file; // O arquivo enviado
 
   if (!temperature || !pressure || !altitude || !image) {
     return res.status(400).send('Missing required fields');
@@ -33,7 +30,6 @@ app.post('/upload', upload.single('image'), (req, res) => {
     temperature: parseFloat(temperature),
     pressure: parseFloat(pressure),
     altitude: parseFloat(altitude),
-    mac: mac,
     image: image.buffer // Aqui você pode salvar a imagem ou fazer o que precisar
   };
 
@@ -43,8 +39,8 @@ app.post('/upload', upload.single('image'), (req, res) => {
   res.status(200).send('Data received successfully');
 });
 
- /*app.post('/', (req, res) => {
-  const { temperature, pressure, altitude, mac, image } = req.body;
+app.post('/', (req, res) => {
+  const { temperature, pressure, altitude, image } = req.body;
 
   if (!temperature || !pressure || !altitude || !image) {
     return res.status(400).send('Missing required fields');
@@ -54,12 +50,11 @@ app.post('/upload', upload.single('image'), (req, res) => {
     temperature: parseFloat(temperature),
     pressure: parseFloat(pressure),
     altitude: parseFloat(altitude),
-    mac: mac,
     image: image
   };
 
   res.status(200).send('Data received successfully');
-});*/
+});
 
 app.get('/', (req, res) => {
   if (!sensorData.temperature) {
@@ -73,8 +68,7 @@ app.get('/', (req, res) => {
         <p>Temperature: ${sensorData.temperature} °C</p>
         <p>Pressure: ${sensorData.pressure} PA</p>
         <p>Altitude: ${sensorData.altitude} Metros</p>
-        <p>Mac do dispositivo: ${sensorData.mac}</p>
-        <img src="data:image/jpeg;base64,${imageBase64}" alt="Captured Image" style="width: 600px; height: 400px;"/>
+        <img src="data:image/jpeg;base64,${sensorData.image}" alt="Captured Image" style="width: 600px; height: 400px;"/>
       </body>
     </html>
   `;
