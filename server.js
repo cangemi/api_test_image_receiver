@@ -33,7 +33,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post('/upload', upload.single('image'), (req, res) => {
-  const { temperature, pressure, altitude } = req.body;
+  const { temperature, pressure, altitude,mac } = req.body;
   const imagePath = req.file.path;
 
   if (!temperature || !pressure || !altitude || !image) {
