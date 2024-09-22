@@ -24,34 +24,27 @@ let sensorData = {
 };
 
 
-app.post('/upload', (req, res) => {
-  const busboy = new Busboy({ headers: req.headers });
+app.post('/upload', upload.single('image'), (req, res) => {
+  const { temperature, pressure, altitude, device_mac } = req.body;
+  const image = req.file; // O arquivo enviado
 
-  let imageBuffer = [];
+  if (!temperature || !pressure || !altitude || !image) {
+    return res.status(400).send('Missing required fields');
+  }
 
-  busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-    file.on('data', (data) => {
-      imageBuffer.push(data); // Coletando os chunks
-    });
+  // Armazenar dados recebidos
+  sensorData = {
+    temperature: parseFloat(temperature),
+    pressure: parseFloat(pressure),
+    altitude: parseFloat(altitude),
+    macAddress: device_mac,
+    image: image.buffer // Armazenando o buffer da imagem
+  };
 
-    file.on('end', () => {
-      console.log('File upload finished');
-    });
-  });
+  // Exibir informação de upload
+  console.log(`Image uploaded: ${image.originalname}, Size: ${image.size} bytes`);
 
-  busboy.on('field', (fieldname, val) => {
-    if (fieldname === 'temperature') sensorData.temperature = parseFloat(val);
-    if (fieldname === 'pressure') sensorData.pressure = parseFloat(val);
-    if (fieldname === 'altitude') sensorData.altitude = parseFloat(val);
-    if (fieldname === 'device_mac') sensorData.macAddress = val;
-  });
-
-  busboy.on('finish', () => {
-    sensorData.image = Buffer.concat(imageBuffer); // Concatenando todos os chunks em um único buffer
-    res.status(200).send('Data received successfully');
-  });
-
-  req.pipe(busboy); // Enviando a requisição para o busboy
+  res.status(200).send('Data received successfully');
 });
 
 app.post('/', (req, res) => {
