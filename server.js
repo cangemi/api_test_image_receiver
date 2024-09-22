@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const Busboy = require('busboy');
 
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -23,27 +24,34 @@ let sensorData = {
 };
 
 
-app.post('/upload', upload.single('image'), (req, res) => {
-  const { temperature, pressure, altitude,device_mac } = req.body;
-  console.log('Chunk received: ', req.file);
-  const image = req.file; // O arquivo enviado
+app.post('/upload', (req, res) => {
+  const busboy = new Busboy({ headers: req.headers });
 
-  if (!temperature || !pressure || !altitude || !image) {
-    return res.status(400).send('Missing required fields');
-  }
+  let imageBuffer = [];
 
-  sensorData = {
-    temperature: parseFloat(temperature),
-    pressure: parseFloat(pressure),
-    altitude: parseFloat(altitude),
-    macAddress: device_mac,
-    image: image.buffer // Aqui você pode salvar a imagem ou fazer o que precisar
-  };
+  busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    file.on('data', (data) => {
+      imageBuffer.push(data); // Coletando os chunks
+    });
 
-  // Exemplo de como você pode processar a imagem, se necessário
-  // const imageBuffer = image.buffer; // Buffer da imagem, se você quiser armazenar ou manipular
+    file.on('end', () => {
+      console.log('File upload finished');
+    });
+  });
 
-  res.status(200).send('Data received successfully');
+  busboy.on('field', (fieldname, val) => {
+    if (fieldname === 'temperature') sensorData.temperature = parseFloat(val);
+    if (fieldname === 'pressure') sensorData.pressure = parseFloat(val);
+    if (fieldname === 'altitude') sensorData.altitude = parseFloat(val);
+    if (fieldname === 'device_mac') sensorData.macAddress = val;
+  });
+
+  busboy.on('finish', () => {
+    sensorData.image = Buffer.concat(imageBuffer); // Concatenando todos os chunks em um único buffer
+    res.status(200).send('Data received successfully');
+  });
+
+  req.pipe(busboy); // Enviando a requisição para o busboy
 });
 
 app.post('/', (req, res) => {
