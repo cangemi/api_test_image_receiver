@@ -1,5 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const multer = require('multer');
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +17,28 @@ let sensorData = {
   image: null
 };
 
-app.post('/upload', (req, res) => {
+app.post('/upload', upload.single('image'), (req, res) => {
+  const { temperature, pressure, altitude } = req.body;
+  const image = req.file; // O arquivo enviado
+
+  if (!temperature || !pressure || !altitude || !image) {
+    return res.status(400).send('Missing required fields');
+  }
+
+  sensorData = {
+    temperature: parseFloat(temperature),
+    pressure: parseFloat(pressure),
+    altitude: parseFloat(altitude),
+    image: image // Aqui você pode salvar a imagem ou fazer o que precisar
+  };
+
+  // Exemplo de como você pode processar a imagem, se necessário
+  // const imageBuffer = image.buffer; // Buffer da imagem, se você quiser armazenar ou manipular
+
+  res.status(200).send('Data received successfully');
+});
+
+app.post('/', (req, res) => {
   const { temperature, pressure, altitude, image } = req.body;
 
   if (!temperature || !pressure || !altitude || !image) {
