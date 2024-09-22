@@ -14,12 +14,13 @@ let sensorData = {
   temperature: null,
   pressure: null,
   altitude: null,
+  macAddress: null,
   image: null
 };
 
 
 app.post('/upload', upload.single('image'), (req, res) => {
-  const { temperature, pressure, altitude } = req.body;
+  const { temperature, pressure, altitude,device_mac } = req.body;
   const image = req.file; // O arquivo enviado
 
   if (!temperature || !pressure || !altitude || !image) {
@@ -30,6 +31,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
     temperature: parseFloat(temperature),
     pressure: parseFloat(pressure),
     altitude: parseFloat(altitude),
+    macAddress: device_mac,
     image: image.buffer // Aqui você pode salvar a imagem ou fazer o que precisar
   };
 
@@ -50,8 +52,10 @@ app.post('/', (req, res) => {
     temperature: parseFloat(temperature),
     pressure: parseFloat(pressure),
     altitude: parseFloat(altitude),
-    image: image
+    macAddress: device_mac,
+    image: image.buffer // Aqui você pode salvar a imagem ou fazer o que precisar
   };
+
 
   res.status(200).send('Data received successfully');
 });
@@ -68,7 +72,8 @@ app.get('/', (req, res) => {
         <p>Temperature: ${sensorData.temperature} °C</p>
         <p>Pressure: ${sensorData.pressure} PA</p>
         <p>Altitude: ${sensorData.altitude} Metros</p>
-        <img src="data:image/jpeg;base64,${imageBase64 }" alt="Captured Image" style="width: 600px; height: 400px;"/>
+        <p>MAC: ${sensorData.macAddress}</p>
+        <img src="data:image/jpeg;base64,${imageBase64}" alt="Captured Image" style="width: 600px; height: 400px;"/>
       </body>
     </html>
   `;
