@@ -1,8 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,32 +15,26 @@ let sensorData = {
   temperature: null,
   pressure: null,
   altitude: null,
+  mac:null,
   image: null
 };
 
-app.post('/upload', upload.single('image'), (req, res) => {
-  const { temperature, pressure, altitude } = req.body;
-  const image = req.file; // O arquivo enviado
 
-  if (!temperature || !pressure || !altitude || !image) {
-    return res.status(400).send('Missing required fields');
+// Configuração do multer para salvar arquivos em disco
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Pasta onde as imagens serão salvas
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname); // Nome original do arquivo
   }
-
-  const sensorData = {
-    temperature: parseFloat(temperature),
-    pressure: parseFloat(pressure),
-    altitude: parseFloat(altitude),
-    image: image // Aqui você pode salvar a imagem ou fazer o que precisar
-  };
-
-  // Exemplo de como você pode processar a imagem, se necessário
-  // const imageBuffer = image.buffer; // Buffer da imagem, se você quiser armazenar ou manipular
-
-  res.status(200).send('Data received successfully');
 });
 
-app.post('/', (req, res) => {
-  const { temperature, pressure, altitude, image } = req.body;
+const upload = multer({ storage: storage });
+
+app.post('/upload', upload.single('image'), (req, res) => {
+  const { temperature, pressure, altitude } = req.body;
+  const imagePath = req.file.path;
 
   if (!temperature || !pressure || !altitude || !image) {
     return res.status(400).send('Missing required fields');
@@ -49,11 +44,33 @@ app.post('/', (req, res) => {
     temperature: parseFloat(temperature),
     pressure: parseFloat(pressure),
     altitude: parseFloat(altitude),
+    mac: mac,
+    image: imagePath // Aqui você pode salvar a imagem ou fazer o que precisar
+  };
+
+  // Exemplo de como você pode processar a imagem, se necessário
+  // const imageBuffer = image.buffer; // Buffer da imagem, se você quiser armazenar ou manipular
+
+  res.status(200).send('Data received successfully');
+});
+
+ /*app.post('/', (req, res) => {
+  const { temperature, pressure, altitude, mac, image } = req.body;
+
+  if (!temperature || !pressure || !altitude || !image) {
+    return res.status(400).send('Missing required fields');
+  }
+
+  sensorData = {
+    temperature: parseFloat(temperature),
+    pressure: parseFloat(pressure),
+    altitude: parseFloat(altitude),
+    mac: mac,
     image: image
   };
 
   res.status(200).send('Data received successfully');
-});
+});*/
 
 app.get('/', (req, res) => {
   if (!sensorData.temperature) {
@@ -67,7 +84,8 @@ app.get('/', (req, res) => {
         <p>Temperature: ${sensorData.temperature} °C</p>
         <p>Pressure: ${sensorData.pressure} PA</p>
         <p>Altitude: ${sensorData.altitude} Metros</p>
-        <img src="data:image/jpeg;base64,${sensorData.image}" alt="Captured Image" style="width: 600px; height: 400px;"/>
+        <p>Mac do dispositivo: ${sensorData.mac}</p>
+        <img src="${sensorData.image}" alt="Captured Image" style="width: 600px; height: 400px;"/>
       </body>
     </html>
   `;
