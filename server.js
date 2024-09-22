@@ -19,22 +19,11 @@ let sensorData = {
   image: null
 };
 
-
-// Configuração do multer para salvar arquivos em disco
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Pasta onde as imagens serão salvas
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname); // Nome original do arquivo
-  }
-});
-
 const upload = multer({ storage: storage });
 
 app.post('/upload', upload.single('image'), (req, res) => {
   const { temperature, pressure, altitude,mac } = req.body;
-  const imagePath = req.file.path;
+  const image = req.file;
 
   if (!temperature || !pressure || !altitude || !image) {
     return res.status(400).send('Missing required fields');
@@ -45,7 +34,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
     pressure: parseFloat(pressure),
     altitude: parseFloat(altitude),
     mac: mac,
-    image: imagePath // Aqui você pode salvar a imagem ou fazer o que precisar
+    image: image.buffer // Aqui você pode salvar a imagem ou fazer o que precisar
   };
 
   // Exemplo de como você pode processar a imagem, se necessário
@@ -85,7 +74,7 @@ app.get('/', (req, res) => {
         <p>Pressure: ${sensorData.pressure} PA</p>
         <p>Altitude: ${sensorData.altitude} Metros</p>
         <p>Mac do dispositivo: ${sensorData.mac}</p>
-        <img src="${sensorData.image}" alt="Captured Image" style="width: 600px; height: 400px;"/>
+        <img src="data:image/jpeg;base64,${imageBase64}" alt="Captured Image" style="width: 600px; height: 400px;"/>
       </body>
     </html>
   `;
