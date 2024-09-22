@@ -2,7 +2,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 
-const upload = multer({ storage: multer.memoryStorage() });
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage, 
+  limits: { fileSize: 5 * 1024 * 1024 }  // Limite de 5MB, ajuste conforme necessário
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
