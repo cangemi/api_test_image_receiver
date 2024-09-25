@@ -155,7 +155,7 @@ app.post('/', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  if (!sensorData.temperature) {
+  if (!sensorData.image) {
     return res.status(404).send('No data available');
   }
   const imageBase64 = sensorData.image.toString('base64');
