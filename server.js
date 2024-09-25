@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-const Busboy = require('busboy');
 
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -24,27 +23,54 @@ let sensorData = {
 };
 
 
-app.post('/upload', upload.single('image'), (req, res) => {
-  const { temperature, pressure, altitude, device_mac } = req.body;
-  const image = req.file; // O arquivo enviado
+let imageChunks = {};  // Armazenar temporariamente os chunks de cada dispositivo
 
-  if (!temperature || !pressure || !altitude || !image) {
+app.post('/upload', (req, res) => {
+  const { temperature, pressure, altitude, device_mac, chunk_index, total_chunks, image_chunk } = req.body;
+
+  // Verificar se todos os campos obrigatórios foram enviados
+  if (!temperature || !pressure || !altitude || !device_mac || !image_chunk || !chunk_index || !total_chunks) {
     return res.status(400).send('Missing required fields');
   }
 
-  // Armazenar dados recebidos
-  sensorData = {
-    temperature: parseFloat(temperature),
-    pressure: parseFloat(pressure),
-    altitude: parseFloat(altitude),
-    macAddress: device_mac,
-    image: image.buffer // Armazenando o buffer da imagem
-  };
+  // Inicializa um array para o dispositivo se não existir
+  if (!imageChunks[device_mac]) {
+    imageChunks[device_mac] = [];
+  }
 
-  // Exibir informação de upload
-  console.log(`Image uploaded: ${image.originalname}, Size: ${image.size} bytes`);
+  // Armazenar o chunk no array
+  imageChunks[device_mac][chunk_index] = image_chunk;
 
-  res.status(200).send('Data received successfully');
+  console.log(`Received chunk ${chunk_index + 1} of ${total_chunks} from device ${device_mac}`);
+
+  // Se todos os chunks foram recebidos, reconstrua a imagem
+  if (parseInt(chunk_index) + 1 == total_chunks) {
+    // Concatena todos os chunks
+    const fullImageBase64 = imageChunks[device_mac].join('');
+    
+    // Decodificar Base64 de volta para binário
+    const imageBuffer = Buffer.from(fullImageBase64, 'base64');
+
+    // Agora você pode salvar a imagem ou processá-la
+    console.log(`Image reconstruction completed for device ${device_mac}, total size: ${imageBuffer.length} bytes`);
+
+    // Limpar a variável temporária
+    delete imageChunks[device_mac];
+
+    // Armazenar outros dados recebidos
+    sensorData = {
+      temperature: parseFloat(temperature),
+      pressure: parseFloat(pressure),
+      altitude: parseFloat(altitude),
+      macAddress: device_mac,
+      image: imageBuffer  // Armazenando o buffer da imagem
+    };
+
+    res.status(200).send('Image received and reconstructed successfully');
+  } else {
+    // Resposta intermediária enquanto ainda há chunks para serem recebidos
+    res.status(200).send('Chunk received successfully');
+  }
 });
 
 app.post('/', (req, res) => {
