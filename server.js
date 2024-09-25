@@ -13,6 +13,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+// Middleware para processar dados binários
+app.use(bodyParser.raw({ type: 'application/octet-stream' }));
 
 let sensorData = {
   temperature: null,
@@ -24,6 +26,9 @@ let sensorData = {
 
 
 let imageChunks = {};  // Armazenar temporariamente os chunks de cada dispositivo
+
+let totalChunks = 0; // Variável para rastrear o número total de chunks
+let currentChunkIndex = 0; // Índice do chunk atual
 
 app.post('/upload', (req, res) => {
   const { temperature, pressure, altitude, device_mac, chunk_index, total_chunks, image_chunk } = req.body;
@@ -70,6 +75,63 @@ app.post('/upload', (req, res) => {
   } else {
     // Resposta intermediária enquanto ainda há chunks para serem recebidos
     res.status(200).send('Chunk received successfully');
+  }
+});
+
+
+app.post('/image', (req, res) => {
+  // Obtenha os dados binários do corpo da requisição
+  const imageChunk = req.body;
+
+  // Os headers devem incluir informações como 'chunk_index' e 'total_chunks'
+  const chunkIndex = parseInt(req.headers['chunk_index'], 10);
+  const totalChunks = parseInt(req.headers['total_chunks'], 10);
+
+  // Verifique se o chunk recebido é válido
+  if (chunkIndex === 0) {
+    // Reinicie o controle de chunks para um novo upload
+    currentChunkIndex = 0;
+    totalChunks = 0;
+  }
+
+  // Armazenar ou processar o chunk da imagem
+  console.log(`Received chunk ${chunkIndex + 1} of ${totalChunks}`);
+  
+  // Aqui você pode armazenar cada chunk em um buffer ou arquivo
+  // Você pode optar por concatenar todos os chunks em um buffer
+  // ou armazenar cada chunk como um arquivo separado.
+
+  // Exemplo de armazenamento em um buffer (opcional)
+  if (chunkIndex === 0) {
+    // Inicialize o buffer para armazenar a imagem completa
+    buffer = Buffer.alloc(totalChunks * chunkSize);
+  }
+
+  // Adiciona o chunk ao buffer
+  imageChunk.copy(buffer, chunkIndex * chunkSize);
+
+  currentChunkIndex++;
+
+  // Verifique se todos os chunks foram recebidos
+  if (currentChunkIndex === totalChunks) {
+    console.log('Received all chunks.');
+
+    sensorData.image = buffer;
+
+    // Aqui você pode processar a imagem completa
+    // Exemplo: salvar em um arquivo
+    const fs = require('fs');
+    fs.writeFile('uploaded_image.jpg', buffer, (err) => {
+      if (err) {
+        console.error('Error saving image:', err);
+        return res.status(500).send('Error saving image');
+      }
+      console.log('Image saved successfully.');
+      res.status(200).send('Image received successfully');
+    });
+  } else {
+    // Enviar resposta de sucesso para o chunk recebido
+    res.status(200).send(`Chunk ${chunkIndex + 1} received successfully.`);
   }
 });
 
